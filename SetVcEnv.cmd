@@ -67,6 +67,8 @@ IF "%VCVARSPATH%"=="" (
   EXIT /B
 )
 
+SET "TARGET=x86"
+
 :: Check Platform
   SET "PLATFORM=%~2"
        IF "%~2"=="" (
@@ -74,33 +76,43 @@ IF "%VCVARSPATH%"=="" (
 ) ELSE IF "%~2"=="x86" (
   ECHO.
 ) ELSE IF "%~2"=="x86_amd64" (
+  SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x86_x64" (
   SET PLATFORM=x86_amd64
+  SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x86_arm" (
+  SET TARGET=arm
   ECHO.
 ) ELSE IF "%~2"=="x86_arm64" (
+  SET TARGET=arm64
   ECHO.
 ) ELSE IF "%~2"=="amd64" (
+  SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="amd64_x86" (
   ECHO.
 ) ELSE IF "%~2"=="amd64_arm" (
+  SET TARGET=arm
   ECHO.
 ) ELSE IF "%~2"=="amd64_arm64" (
+  SET TARGET=arm64
   ECHO.
 ) ELSE IF "%~2"=="x64" (
   SET PLATFORM=amd64
+  SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x64_x86" (
   SET PLATFORM=amd64_x86
   ECHO.
 ) ELSE IF "%~2"=="x64_arm" (
   SET PLATFORM=amd64_arm
+  SET TARGET=arm
   ECHO.
 ) ELSE IF "%~2"=="x64_arm64" (
   SET PLATFORM=amd64_arm64
+  SET TARGET=arm64
   ECHO.
 ) ELSE (
   ECHO Invalid platform!
@@ -119,6 +131,12 @@ POPD
 CALL Envvar :EnvvarAddPath "INCLUDE" "%ProgramFiles%\Polyspace\R2019b\extern\include"
 CALL Envvar :EnvvarAddPath "LIB"     "%ProgramFiles%\Polyspace\R2019b\extern\lib\win64\microsoft"
 CALL Envvar :EnvvarAddPath "PATH"    "%ProgramFiles%\Polyspace\R2019b\extern\bin\win64"
+CALL Envvar :EnvvarAddPath "INCLUDE" "D:\Development\Tools\src\npcap-sdk-1.05\Include"
+IF "%TARGET%"=="x86" (
+  CALL Envvar :EnvvarAddPath "LIB"  "D:\Development\Tools\src\npcap-sdk-1.05\Lib"
+) ELSE (
+  CALL Envvar :EnvvarAddPath "LIB"  "D:\Development\Tools\src\npcap-sdk-1.05\Lib\x64"
+)
 
 :: Execute cl.exe to obtain the major and minor version.
 :: VC_VER_STRING   (e.g., 16.00.40219.01)
@@ -152,6 +170,7 @@ SET VSWHERE=
 SET VSPATH=
 SET VCVARSPATH=
 SET PLATFORM=
+SET TARGET=
 EXIT /B
 :: ============ Clean End ============
 
@@ -316,7 +335,7 @@ CALL vcvarsall.bat %VCVARSARGS%
 SET "VCVARSARGS="
 POPD
 
-IF "%VC_VER_MAJOR%"=="16" (
+IF "%VSVER%"=="10" (
   IF EXIST "%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A\Include\Win32.Mak" (
     SET "SDK_INCLUDE_DIR=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A\Include"
   ) ELSE IF EXIST "%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.0A\Include\Win32.Mak" (
@@ -367,7 +386,7 @@ EXIT /B
 
 :: ============ QueryVcVersion Begin ============
 :: @param[in] %1 The command line output of cl.exe that contains "Version ww.xx.yy.zz".
-:ParseVersionLine	
+:ParseVersionLine
 FOR /F "tokens=1*" %%i IN ("%~1") DO (
   CALL :IsVcVersion "%%~i"
   IF ERRORLEVEL 1 (
