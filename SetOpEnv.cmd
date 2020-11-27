@@ -90,7 +90,7 @@ ECHO   -home:  OPNET Modeler User Home.
 ECHO   -gui:   Launch OPNET Modeler GUI.
 ECHO.
 ECHO   For example,
-ECHO   %SCRIPT_NAME% -vcver 16 -plat x64 -opver 14.5.A -home "D:\op" -gui
+ECHO   %SCRIPT_NAME% -vc 10 -p x64 -op 14.5.A -home "D:\Development\op" -gui
 EXIT /B
 :: ============ ShowHelp End ============
 
