@@ -79,7 +79,11 @@ If ($sys)
 	}
 	else
 	{
-        $argList = @("-File", "$PSCommandPath", "-sys") + $args
+        $argList = "-File $PSCommandPath -sys"
+        Foreach ($arg In $args)
+        {
+            $argList += ' "' + $arg + '"'
+        }
 		Start-Process -FilePath "powershell" -Verb RunAs -ArgumentList $argList
 	}
 }
