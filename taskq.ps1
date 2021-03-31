@@ -43,6 +43,27 @@ class Task
         $this.proc = $proc
         $this.cpos = $cpos
     }
+
+    [string] GetElapsedTime()
+    {
+        $d = $null
+        if (-not $this.proc.HasExited)
+        {
+            $now = Get-Date
+            $d = $now - $this.proc.StartTime
+        }
+        else
+        {
+            $d = $this.proc.ExitTime - $this.proc.StartTime
+        }
+        $str = '*'
+        if ($d.Days)
+        {
+            $str = '{0}.' -f $d.Days
+        }
+        $str += '{0:d2}:{1:d2}:{2:d2}' -f $d.Hours, $d.Minutes, $d.Seconds
+        return $str
+    }
 }
 
 function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queues)
@@ -64,8 +85,6 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
     }
     Write-Host ('Total number of tasks: {0}' -f $cmdlines.Count)
     $width = [System.Math]::Ceiling([System.Math]::Log10($cmdlines.Count + 1))
-    $mark0 = '*'
-    $mark1 = '.'
     # Run tasks.
     $pool = New-Object System.Collections.Generic.List[Task]
     $index = 0
@@ -76,11 +95,10 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
         {
             $index += 1
             $line = $cmdlines.Dequeue()
-            Write-Host -NoNewline $index
+            Write-Host -NoNewline ('{0}. {1}  ' -f $index, $line)
             # Save the cursor position.
             $cpos = $Host.UI.RawUI.CursorPosition
-            Write-Host -NoNewline -ForegroundColor Green "$mark0 "
-            Write-Host $line
+            Write-Host ''
             if ($log)
             {
                 $line = '{0} | Tee-Object -FilePath {1}.log' -f $line, $index
@@ -111,11 +129,13 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
                 if ($task.proc.HasExited)
                 {
                     $Host.UI.RawUI.CursorPosition = $task.cpos
-                    Write-Host -NoNewline "$mark1"
+                    Write-Host -NoNewline $task.GetElapsedTime()
                     $pool.RemoveAt($i)
                 }
                 else
                 {
+                    $Host.UI.RawUI.CursorPosition = $task.cpos
+                    Write-Host -NoNewline -ForegroundColor Green $task.GetElapsedTime()
                     $i += 1
                 }
             }
@@ -138,11 +158,13 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
             if ($task.proc.HasExited)
             {
                 $Host.UI.RawUI.CursorPosition = $task.cpos
-                Write-Host -NoNewline "$mark1"
+                Write-Host -NoNewline $task.GetElapsedTime()
                 $pool.RemoveAt($i)
             }
             else
             {
+                $Host.UI.RawUI.CursorPosition = $task.cpos
+                Write-Host -NoNewline -ForegroundColor Green $task.GetElapsedTime()
                 $i += 1
             }
         }
@@ -155,4 +177,7 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
     $Host.UI.RawUI.CursorPosition = $cpos
 }
 
+$csize = $Host.UI.RawUI.CursorSize
+$Host.UI.RawUI.CursorSize = 0
 RunQueues -jobs $jobs -log:$log -keep:$keep -queues $queues
+$Host.UI.RawUI.CursorSize = $csize
