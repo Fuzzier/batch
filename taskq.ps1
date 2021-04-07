@@ -16,6 +16,11 @@ param (
     [switch]
     $log = $false,
     
+    [Parameter(HelpMessage='Show elapsed time.')]
+    [Alias('t')]
+    [switch]
+    $time = $false,
+
     [Parameter(HelpMessage='Keep the task console from being closed. This is for debugging purpose only.')]
     [Alias('k')]
     [switch]
@@ -44,6 +49,37 @@ class Task
         $this.cpos = $cpos
     }
 
+    [string] FormatDateTime([System.DateTime] $t)
+    {
+        $str = '{0:d4}-{1:d2}-{2:d2} {3:d2}:{4:d2}:{5:d2}' -f $t.Year, $t.Month, $t.Day, $t.Hour, $t.Minute, $t.Second
+        return $str;
+    }
+
+    [string] FormatTimeSpan([System.TimeSpan] $d)
+    {
+        if ($d.Days)
+        {
+            $str = '{0}.' -f $d.Days
+        }
+        $str += '{0:d2}:{1:d2}:{2:d2}' -f $d.Hours, $d.Minutes, $d.Seconds
+        return $str;
+    }
+
+    [string] GetStartTime()
+    {
+        return $this.FormatDateTime($this.proc.StartTime)
+    }
+
+    [string] GetEndTime()
+    {
+        $str = ''
+        if ($this.proc.HasExited)
+        {
+            $str = $this.FormatDateTime($this.proc.ExitTime)
+        }
+        return $str
+    }
+
     [string] GetElapsedTime()
     {
         $d = $null
@@ -56,17 +92,12 @@ class Task
         {
             $d = $this.proc.ExitTime - $this.proc.StartTime
         }
-        $str = '*'
-        if ($d.Days)
-        {
-            $str = '{0}.' -f $d.Days
-        }
-        $str += '{0:d2}:{1:d2}:{2:d2}' -f $d.Hours, $d.Minutes, $d.Seconds
+        $str += $this.FormatTimeSpan($d)
         return $str
     }
 }
 
-function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queues)
+function RunQueues([int] $jobs, [switch] $log, [switch] $verbose, [switch] $keep, [string[]] $queues)
 {
     # Load all tasks into a list.
     $cmdlines = New-Object System.Collections.Generic.Queue[string]
@@ -95,10 +126,22 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
         {
             $index += 1
             $line = $cmdlines.Dequeue()
-            Write-Host -NoNewline ('{0}. {1}  ' -f $index, $line)
-            # Save the cursor position.
-            $cpos = $Host.UI.RawUI.CursorPosition
-            Write-Host ''
+            if ($verbose)
+            {
+                Write-Host ('{0}. {1}' -f $index, $line)
+                $width = [System.Math]::Ceiling([System.Math]::Log10($index + 1))
+                # Save the cursor position.
+                $cpos = $Host.UI.RawUI.CursorPosition
+                $cpos.X += $width + 2 # '<index>. '
+            }
+            else
+            {
+                Write-Host -NoNewline $index
+                # Save the cursor position.
+                $cpos = $Host.UI.RawUI.CursorPosition
+                Write-Host -NoNewline -ForegroundColor Green '* '
+                Write-Host $line
+            }
             if ($log)
             {
                 $line = '{0} | Tee-Object -FilePath {1}.log' -f $line, $index
@@ -116,6 +159,11 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
             }
             $proc = Start-Process -PassThru -FilePath 'powershell' -ArgumentList $line
             $task = [Task]::new($proc, $cpos)
+            if ($verbose)
+            {
+               $Host.UI.RawUI.CursorPosition = $task.cpos
+               Write-Host -ForegroundColor Green ('{0} @ {1}' -f $task.GetElapsedTime(), $task.GetStartTime())
+            }
             [void] $pool.Add($task)
         }
         # Wait for any process to stop.
@@ -129,13 +177,23 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
                 if ($task.proc.HasExited)
                 {
                     $Host.UI.RawUI.CursorPosition = $task.cpos
-                    Write-Host -NoNewline $task.GetElapsedTime()
+                    if (-not $verbose)
+                    {
+                        Write-Host -NoNewline '.' # Change '<index>* ' to '<index>. '
+                    }
+                    else
+                    {
+                        Write-Host -NoNewline ('{0} @ {1}  {2}' -f $task.GetElapsedTime(), $task.GetStartTime(), $task.GetEndTime())
+                    }
                     $pool.RemoveAt($i)
                 }
                 else
                 {
-                    $Host.UI.RawUI.CursorPosition = $task.cpos
-                    Write-Host -NoNewline -ForegroundColor Green $task.GetElapsedTime()
+                    if ($verbose)
+                    {
+                        $Host.UI.RawUI.CursorPosition = $task.cpos
+                        Write-Host -NoNewline -ForegroundColor Green ('{0} @ {1}' -f $task.GetElapsedTime(), $task.GetStartTime())
+                    }
                     $i += 1
                 }
             }
@@ -158,13 +216,23 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
             if ($task.proc.HasExited)
             {
                 $Host.UI.RawUI.CursorPosition = $task.cpos
-                Write-Host -NoNewline $task.GetElapsedTime()
+                if (-not $verbose)
+                {
+                    Write-Host -NoNewline '.' # Change '<index>* ' to '<index>. '
+                }
+                else
+                {
+                    Write-Host -NoNewline ('{0} @ {1}  {2}' -f $task.GetElapsedTime(), $task.GetStartTime(), $task.GetEndTime())
+                }
                 $pool.RemoveAt($i)
             }
             else
             {
-                $Host.UI.RawUI.CursorPosition = $task.cpos
-                Write-Host -NoNewline -ForegroundColor Green $task.GetElapsedTime()
+                if ($verbose)
+                {
+                    $Host.UI.RawUI.CursorPosition = $task.cpos
+                    Write-Host -NoNewline -ForegroundColor Green ('{0} @ {1}' -f $task.GetElapsedTime(), $task.GetStartTime())
+                }
                 $i += 1
             }
         }
@@ -179,5 +247,5 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $keep, [string[]] $queue
 
 $csize = $Host.UI.RawUI.CursorSize
 $Host.UI.RawUI.CursorSize = 0
-RunQueues -jobs $jobs -log:$log -keep:$keep -queues $queues
+RunQueues -jobs $jobs -log:$log -verbose:$time -keep:$keep -queues $queues
 $Host.UI.RawUI.CursorSize = $csize
