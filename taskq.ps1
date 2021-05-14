@@ -122,7 +122,7 @@ function RunQueues([int] $jobs, [switch] $log, [switch] $verbose, [switch] $keep
     while ($cmdlines.Count)
     {
         # Run tasks in parallel.
-        while ($pool.Count -lt $jobs)
+        while ($cmdlines.Count -and ($pool.Count -lt $jobs))
         {
             $index += 1
             $line = $cmdlines.Dequeue()
