@@ -127,17 +127,6 @@ PUSHD .
 CALL :SetVcVars
 POPD
 
-:: Setup environment for other tools
-CALL Envvar :EnvvarAddPath "INCLUDE" "%ProgramFiles%\Polyspace\R2019b\extern\include"
-CALL Envvar :EnvvarAddPath "LIB"     "%ProgramFiles%\Polyspace\R2019b\extern\lib\win64\microsoft"
-CALL Envvar :EnvvarAddPath "PATH"    "%ProgramFiles%\Polyspace\R2019b\extern\bin\win64"
-CALL Envvar :EnvvarAddPath "INCLUDE" "D:\Development\Tools\src\npcap-sdk-1.05\Include"
-IF "%TARGET%"=="x86" (
-  CALL Envvar :EnvvarAddPath "LIB"  "D:\Development\Tools\src\npcap-sdk-1.05\Lib"
-) ELSE (
-  CALL Envvar :EnvvarAddPath "LIB"  "D:\Development\Tools\src\npcap-sdk-1.05\Lib\x64"
-)
-
 :: Execute cl.exe to obtain the major and minor version.
 :: VC_VER_STRING   (e.g., 16.00.40219.01)
 :: VC_VER_MAJOR    (e.g., 16)
@@ -155,8 +144,11 @@ CALL :QueryVcVersion
 :: OS_ARCH    (e.g., 64 bit)
 CALL :QueryOsInfo
 
+:: Setup environment for other tools
+CALL :LoadUserSetting
+
 CALL :Clean
-EXIT /B
+EXIT /B 0
 
 
 :: ============ Clean Begin ============
@@ -433,3 +425,16 @@ FOR /F "skip=1"              %%i IN ('WMIC OS GET Version        ^| FINDSTR /R /
 FOR /F "skip=1"              %%i IN ('WMIC OS GET BuildNumber    ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_BUILD=%%i" )
 EXIT /B
 :: ============ QueryOsInfo End ============
+
+
+:: ============ LoadUserSetting Begin ============
+:LoadUserSetting
+CALL SetUserEnv.cmd 2>NUL
+IF NOT ERRORLEVEL 1 (
+  ECHO Load uer-defined environment settings from "SetUserEnv.cmd"
+) ELSE (
+  ECHO Cannot load uer-defined environment settings from "SetUserEnv.cmd"
+)
+EXIT /B
+:: ============ LoadUserSetting End ============
+
