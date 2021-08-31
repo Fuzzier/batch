@@ -144,9 +144,6 @@ CALL :QueryVcVersion
 :: OS_ARCH    (e.g., 64 bit)
 CALL :QueryOsInfo
 
-:: Setup environment for other tools
-CALL :LoadUserSetting
-
 CALL :Clean
 EXIT /B 0
 
@@ -425,16 +422,3 @@ FOR /F "skip=1"              %%i IN ('WMIC OS GET Version        ^| FINDSTR /R /
 FOR /F "skip=1"              %%i IN ('WMIC OS GET BuildNumber    ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_BUILD=%%i" )
 EXIT /B
 :: ============ QueryOsInfo End ============
-
-
-:: ============ LoadUserSetting Begin ============
-:LoadUserSetting
-CALL SetUserEnv.cmd 2>NUL
-IF NOT ERRORLEVEL 1 (
-  ECHO Load uer-defined environment settings from "SetUserEnv.cmd"
-) ELSE (
-  ECHO Cannot load uer-defined environment settings from "SetUserEnv.cmd"
-)
-EXIT /B
-:: ============ LoadUserSetting End ============
-

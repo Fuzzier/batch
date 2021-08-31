@@ -14,8 +14,8 @@ IF "%1"=="/?" (
 )
 
 :: Parse command-line options
-SET VCVER=10
-SET PLATFORM=x86
+SET OPNET_VCVER=10
+SET OPNET_PLATFORM=x86
 SET OPNET_RELEASE=14.5.A
 SET OPNET_USER_HOME=
 SET OPNET_GUI=
@@ -25,18 +25,21 @@ IF %ERRORLEVEL% GEQ 1 (
 )
 
 :: Set OPNET platform (intel_win32 or amd_win64)
-SET OPNET_PLATFORM=intel_win32
-CALL :GetPlatform
+SET OPNET_PC=intel_win32
+CALL :GetPc
 
-:: ECHO.%VCVER%
-:: ECHO.%PLATFORM%
+:: ECHO.%OPNET_VCVER%
+:: ECHO.%OPNET_PLATFORM%
 :: ECHO.%OPNET_RELEASE%
 :: ECHO.%OPNET_USER_HOME%
 :: ECHO.%OPNET_GUI%
-:: ECHO.%OPNET_PLATFORM%
+:: ECHO.%OPNET_PC%
 
 :: Call the external batch file
-CALL SetVcEnv %VCVER% %PLATFORM%
+CALL SetVcEnv %OPNET_VCVER% %OPNET_PLATFORM%
+
+:: Setup environment for other tools
+CALL SetUserEnv.cmd %OPNET_PLATFORM%
 
 :: Setup OPNET environment
 SET ProgramFiles64=%ProgramFiles%
@@ -55,19 +58,19 @@ SET OPNET_SYS_DIR=%OPNET_INSTALL_DIR%\sys
 
 :: C:\Program Files\OPNET\14.5.A\sys\pc_intel_win32
 :: C:\Program Files\OPNET\14.5.A\sys\pc_amd_win64
-SET OPNET_PLATFORM_DIR=%OPNET_SYS_DIR%\pc_%OPNET_PLATFORM%
+SET OPNET_PC_DIR=%OPNET_SYS_DIR%\pc_%OPNET_PC%
 
 :: C:\Program Files\OPNET\14.5.A\models\std
 SET OPNET_MODEL_DIR=%OPNET_INSTALL_DIR%\models\std
 
-CALL Envvar :EnvvarAddPath "PATH"    "%OPNET_PLATFORM_DIR%\bin"
+CALL Envvar :EnvvarAddPath "PATH"    "%OPNET_PC_DIR%\bin"
 CALL Envvar :EnvvarAddPath "PATH"    "%OPNET_USER_HOME%\op_models\lib"
 
 CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_SYS_DIR%\include"
 CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_MODEL_DIR%\include"
 CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_USER_HOME%\op_models"
 
-CALL Envvar :EnvvarAddPath "LIB"     "%OPNET_PLATFORM_DIR%\lib"
+CALL Envvar :EnvvarAddPath "LIB"     "%OPNET_PC_DIR%\lib"
 CALL Envvar :EnvvarAddPath "LIB"     "%OPNET_USER_HOME%\op_models\lib"
 
 IF "%OPNET_GUI%"=="1" (
@@ -75,7 +78,7 @@ IF "%OPNET_GUI%"=="1" (
   FOR /D %%d IN ("%OPNET_ROOT_DIR%") DO (CD /D %%~dd)
 
   :: Start OPNET modeler
-  START "" "%OPNET_PLATFORM_DIR%\bin\opnet.exe" -mem_shred
+  START "" "%OPNET_PC_DIR%\bin\opnet.exe" -mem_shred
 )
 
 EXIT /B
@@ -99,13 +102,13 @@ EXIT /B
 :ParseOptions
 IF "%1"=="-vc" (
   IF "%2" NEQ "" (
-    SET "VCVER=%~2"
+    SET "OPNET_VCVER=%~2"
   )
   SHIFT /1
   SHIFT /1
 ) ELSE IF "%1"=="-p" (
   IF "%2" NEQ "" (
-    SET "PLATFORM=%~2"
+    SET "OPNET_PLATFORM=%~2"
   )
   SHIFT /1
   SHIFT /1
@@ -134,16 +137,16 @@ GOTO :ParseOptions
 :: ============ ParseOptions End ============
 
 
-:: ============ GetPlatform End ============
-:GetPlatform
-IF "%PLATFORM%"=="x64" (
-  SET OPNET_PLATFORM=amd_win64
-) ELSE IF "%PLATFORM%"=="amd64" (
-  SET OPNET_PLATFORM=amd_win64
-) ELSE IF "%PLATFORM%"=="x86_x64" (
-  SET OPNET_PLATFORM=amd_win64
-) ELSE IF "%PLATFORM%"=="x86_amd64" (
-  SET OPNET_PLATFORM=amd_win64
+:: ============ GetPc End ============
+:GetPc
+IF "%OPNET_PLATFORM%"=="x64" (
+  SET OPNET_PC=amd_win64
+) ELSE IF "%OPNET_PLATFORM%"=="amd64" (
+  SET OPNET_PC=amd_win64
+) ELSE IF "%OPNET_PLATFORM%"=="x86_x64" (
+  SET OPNET_PC=amd_win64
+) ELSE IF "%OPNET_PLATFORM%"=="x86_amd64" (
+  SET OPNET_PC=amd_win64
 )
 EXIT /B
-:: ============ GetPlatform End ============
+:: ============ GetPc End ============
