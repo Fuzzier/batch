@@ -46,6 +46,10 @@ SET "VCVER="
   SET "VCREL=VC\Auxiliary\Build"
   SET "VCVER=14.2"
   ECHO.
+) ELSE IF "%~1"=="17" (
+  SET "VCREL=VC\Auxiliary\Build"
+  SET "VCVER=14.3"
+  ECHO.
 ) ELSE (
   ECHO Invalid `<VSVER`>!
   CALL :ShowHelp
@@ -174,6 +178,7 @@ ECHO     12        Visual C++ 2013
 ECHO     14        Visual C++ 2015
 ECHO     15        Visual C++ 2017
 ECHO     16        Visual C++ 2019
+ECHO     17        Visual C++ 2022
 ECHO   platform:
 ECHO     x86         (default)
 ECHO     x86_amd64
