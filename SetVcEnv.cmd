@@ -1,11 +1,11 @@
 @ECHO OFF
 
 REM ===========================================================
-REM 20200304
+REM 20211227
 REM ===========================================================
 
 IF "%1"=="/?" (
-  CALL :ShowHelp
+  CALL :ShowHelp "%~nx0"
   EXIT /B
 )
 
@@ -22,37 +22,41 @@ SET "VCREL=VC"
 SET "VCVER="
 
 :: Check VS Version
-    SET "VSVER=%~1"
-       IF "%~1"=="" (
-    SET "VSVER=10"
-    SET "VCVER=10.0"
-) ELSE IF "%~1"=="10" (
-    SET "VCVER=10.0"
+  SET "VSVER=%~1"
+       IF "%~1"=="10" (
+  SET "VS_VER_YEAR=2010"
+  SET "VCVER=10.0"
   ECHO.
 ) ELSE IF "%~1"=="11" (
-    SET "VCVER=11.0"
+  SET "VS_VER_YEAR=2012"
+  SET "VCVER=11.0"
   ECHO.
 ) ELSE IF "%~1"=="12" (
-    SET "VCVER=12.0"
+  SET "VS_VER_YEAR=2013"
+  SET "VCVER=12.0"
   ECHO.
 ) ELSE IF "%~1"=="14" (
-    SET "VCVER=14.0"
+  SET "VS_VER_YEAR=2015"
+  SET "VCVER=14.0"
   ECHO.
 ) ELSE IF "%~1"=="15" (
-  SET "VCREL=VC\Auxiliary\Build"
+  SET "VS_VER_YEAR=2017"
   SET "VCVER=14.1"
+  SET "VCREL=VC\Auxiliary\Build"
   ECHO.
 ) ELSE IF "%~1"=="16" (
-  SET "VCREL=VC\Auxiliary\Build"
+  SET "VS_VER_YEAR=2019"
   SET "VCVER=14.2"
+  SET "VCREL=VC\Auxiliary\Build"
   ECHO.
 ) ELSE IF "%~1"=="17" (
-  SET "VCREL=VC\Auxiliary\Build"
+  SET "VS_VER_YEAR=2022"
   SET "VCVER=14.3"
+  SET "VCREL=VC\Auxiliary\Build"
   ECHO.
 ) ELSE (
   ECHO Invalid `<VSVER`>!
-  CALL :ShowHelp
+  CALL :ShowHelp "%~nx0"
   CALL :Clean
   EXIT /B
 )
@@ -74,9 +78,10 @@ IF "%VCVARSPATH%"=="" (
 SET "TARGET=x86"
 
 :: Check Platform
+:: Defaults to x64
   SET "PLATFORM=%~2"
        IF "%~2"=="" (
-  SET PLATFORM=x86
+  SET PLATFORM=x64
 ) ELSE IF "%~2"=="x86" (
   ECHO.
 ) ELSE IF "%~2"=="x86_amd64" (
@@ -120,7 +125,7 @@ SET "TARGET=x86"
   ECHO.
 ) ELSE (
   ECHO Invalid platform!
-  CALL :ShowHelp
+  CALL :ShowHelp "%~nx0"
   CALL :Clean
   EXIT /B
 )
@@ -170,9 +175,9 @@ EXIT /B
 
 :: ============ ShowHelp Begin ============
 :ShowHelp
-ECHO Usage: %0 ^<VSVER^> ^[platform^]
+ECHO Usage: %~1 ^<VSVER^> ^[platform^]
 ECHO   VSVER:
-ECHO     10        Visual C++ 2010 (default)
+ECHO     10        Visual C++ 2010
 ECHO     11        Visual C++ 2012
 ECHO     12        Visual C++ 2013
 ECHO     14        Visual C++ 2015
@@ -180,7 +185,7 @@ ECHO     15        Visual C++ 2017
 ECHO     16        Visual C++ 2019
 ECHO     17        Visual C++ 2022
 ECHO   platform:
-ECHO     x86         (default)
+ECHO     x86
 ECHO     x86_amd64
 ECHO     x86_x64
 ECHO     x86_arm
@@ -189,7 +194,7 @@ ECHO     amd64
 ECHO     amd64_x86
 ECHO     amd64_arm
 ECHO     amd64_arm64
-ECHO     x64
+ECHO     x64         (default)
 ECHO     x64_x86
 ECHO     x64_arm
 ECHO     x64_arm64
@@ -308,7 +313,7 @@ EXIT /B 1
 :: ============ GetVcVarsPathReg End ============
 
 
-:: ============ Microsoft Visual C++ Begin ============
+:: ============ SetVcVars Begin ============
 :: @brief Call "vcvarsall.bat".
 :: @param[in] %VCVARSPATH% The path to "vcvarsall.bat".
 :: @param[in] %PLATFORM%   The platform.
@@ -337,7 +342,7 @@ IF "%VSVER%"=="10" (
   )
 )
 EXIT /B
-:: ============ Microsoft Visual C++ End ============
+:: ============ SetVcVars End ============
 
 
 :: ============ SetupPIL Begin ============

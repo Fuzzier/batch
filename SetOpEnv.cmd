@@ -14,8 +14,8 @@ IF "%1"=="/?" (
 )
 
 :: Parse command-line options
-SET OPNET_VCVER=10
-SET OPNET_PLATFORM=x86
+SET OPNET_VCVER=17
+SET OPNET_PLATFORM=x64
 SET OPNET_RELEASE=14.5.A
 SET OPNET_USER_HOME=
 SET OPNET_GUI=
@@ -86,14 +86,14 @@ EXIT /B
 :: ============ ShowHelp Begin ============
 :ShowHelp
 ECHO Usage: %SCRIPT_NAME% [-option value] ...
-ECHO   -vc:    Microsoft Visual C++ version, defaults to "10"
-ECHO   -p:     Platform architecture,        defaults to "x86"
+ECHO   -vc:    Microsoft Visual C++ version, defaults to "17"
+ECHO   -p:     Platform architecture,        defaults to "x64"
 ECHO   -op:    OPNET Modeler version,        defaults to "14.5.A"
 ECHO   -home:  OPNET Modeler User Home.
 ECHO   -gui:   Launch OPNET Modeler GUI.
 ECHO.
 ECHO   For example,
-ECHO   %SCRIPT_NAME% -vc 10 -p x64 -op 14.5.A -home "D:\Development\op" -gui
+ECHO   %SCRIPT_NAME% -vc 17 -p x64 -op 14.5.A -home "D:\Development\op" -gui
 EXIT /B
 :: ============ ShowHelp End ============
 
