@@ -1,7 +1,7 @@
 @ECHO OFF
 
 REM ===========================================================
-REM 20211227
+REM 2020220607
 REM ===========================================================
 
 IF "%1"=="/?" (
@@ -10,7 +10,7 @@ IF "%1"=="/?" (
 )
 
 :: State check
-cl.exe 1>NUL 2>&1
+cl.exe >NUL 2>NUL
 IF %ERRORLEVEL% EQU 0 (
     ECHO MSVC environment has already been set.
     EXIT /B
@@ -54,11 +54,6 @@ SET "VCVER="
   SET "VCVER=14.3"
   SET "VCREL=VC\Auxiliary\Build"
   ECHO.
-) ELSE (
-  ECHO Invalid `<VSVER`>!
-  CALL :ShowHelp "%~nx0"
-  CALL :Clean
-  EXIT /B
 )
 
 :: Call vcvarsall.bat to obtain %VCVARSPATH%.
@@ -68,27 +63,31 @@ SET "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 SET "USEVCVER=0"
 SET "VSPATH="
 SET "VCVARSPATH="
-CALL :GetVcVarsPath
+IF "%VSVER%"=="" (
+  CALL :GuessVcVarsPath
+) ELSE (
+  CALL :GetVcVarsPath
+)
 IF "%VCVARSPATH%"=="" (
   ECHO Cannot locate VC!
   CALL :Clean
   EXIT /B
 )
 
-SET "TARGET=x86"
-
 :: Check Platform
 :: Defaults to x64
   SET "PLATFORM=%~2"
        IF "%~2"=="" (
   SET PLATFORM=x64
+  SET TARGET=x64
 ) ELSE IF "%~2"=="x86" (
+  SET TARGET=x86
   ECHO.
 ) ELSE IF "%~2"=="x86_amd64" (
+  SET PLATFORM=x86_x64
   SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x86_x64" (
-  SET PLATFORM=x86_amd64
   SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x86_arm" (
@@ -98,29 +97,31 @@ SET "TARGET=x86"
   SET TARGET=arm64
   ECHO.
 ) ELSE IF "%~2"=="amd64" (
+  SET PLATFORM=x64
   SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="amd64_x86" (
+  SET PLATFORM=x64_x86
+  SET TARGET=x86
   ECHO.
 ) ELSE IF "%~2"=="amd64_arm" (
+  SET PLATFORM=x64_arm
   SET TARGET=arm
   ECHO.
 ) ELSE IF "%~2"=="amd64_arm64" (
+  SET PLATFORM=x64_arm64
   SET TARGET=arm64
   ECHO.
 ) ELSE IF "%~2"=="x64" (
-  SET PLATFORM=amd64
   SET TARGET=x64
   ECHO.
 ) ELSE IF "%~2"=="x64_x86" (
-  SET PLATFORM=amd64_x86
+  SET TARGET=x86
   ECHO.
 ) ELSE IF "%~2"=="x64_arm" (
-  SET PLATFORM=amd64_arm
   SET TARGET=arm
   ECHO.
 ) ELSE IF "%~2"=="x64_arm64" (
-  SET PLATFORM=amd64_arm64
   SET TARGET=arm64
   ECHO.
 ) ELSE (
@@ -161,6 +162,7 @@ EXIT /B 0
 :Clean
 SET VSVER=
 SET VSVERNEXT=
+SET VS_VER_YEAR=
 SET VCREL=
 SET VCVER=
 SET USEVCVER=
@@ -217,6 +219,62 @@ EXIT /B
 :: ============ GetProgramFile End ============
 
 
+:: ============ GuessVcVarsPath Begin ============
+:: @param[in]  %VSWHERE%    The path to "vswhere.exe".
+:: @param[out] %VSPATH%     The installation path of VS.
+:: @param[out] %VCVARSPATH% The path to "vcvarsall.bat".
+:GuessVcVarsPath
+  CALL :GetProgramFile
+  CALL :GuessVcVarsPathVsWhere
+  IF "%VSPATH%"=="" (
+    CALL :GuessVcVarsPathReg
+  )
+  IF NOT "%VSPATH%"=="" (
+    SET "VCVARSPATH=%VSPATH%%VCREL%"
+  )
+EXIT /B
+:: ============ GuessVcVarsPath End ============
+
+
+:: ============ GuessVcVarsPathVsWhere Begin ============
+:: @param[in]  %VSWHERE%    The path to "vswhere.exe".
+:: @param[out] %VSPATH%     The installation path of VS.
+:: @param[out] %VCVARSPATH% The path to "vcvarsall.bat".
+:GuessVcVarsPathVsWhere
+  REM Query 'vswhere.exe' for the lastest version.
+  SET "VSVER=15"
+  SET "VCREL=VC\Auxiliary\Build"
+  CALL :GetVcVarsPathVswhereLatest
+EXIT /B
+:: ============ GuessVcVarsPathVsWhere End ============
+
+
+:: ============ GuessVcVarsPathReg Begin ============
+:: @param[out] %VSPATH%     The installation path of VS.
+:: @param[out] %VCVARSPATH% The path to "vcvarsall.bat".
+:GuessVcVarsPathReg
+  SET "VCREL=VC"
+  FOR /L %%i IN (14,-1,10) DO (
+    SET "VSVER=%%i"
+    CALL :GuessVcVarsPathReg1
+  )
+EXIT /B
+:: ============ GuessVcVarsPathReg End ============
+
+
+:: ============ GuessVcVarsPathReg1 Begin ============
+:: @param[in]  %VSVER%      The VS major version.
+:: @param[in]  %VCREL%      The relative path to VC build tools.
+:: @param[out] %VSPATH%     The installation path of VS.
+:: @param[out] %VCVARSPATH% The path to "vcvarsall.bat".
+:GuessVcVarsPathReg1
+  IF "%VSPATH%"=="" (
+    CALL :GetVcVarsPathReg
+  )
+EXIT /B
+:: ============ GuessVcVarsPathReg1 End ============
+
+
 :: ============ GetVcVarsPath Begin ============
 :: @param[in]  %VSVER%      The VS major version.
 :: @param[in]  %VSVERNEXT%  The next VS major version.
@@ -235,7 +293,9 @@ IF %ERRORLEVEL% EQU 1 (
   REM so a call to "vcvarsall.bat -vcvars_ver=14.1" will work.
   CALL :GetVcVarsPathVswhereLatest
 )
-IF %ERRORLEVEL% EQU 1 (
+IF %ERRORLEVEL% EQU 0 (
+  SET "USEVCVER=1"
+) ELSE (
   REM For VS2015-, qeury via the registry.
   CALL :GetVcVarsPathReg
 )
@@ -274,7 +334,6 @@ EXIT /B 1
 :: @param[in]  %VSWHERE%  The path to "vswhere.exe".
 :: @param[in]  %VCREL%    The relative path to VC build tools.
 :: @param[out] %VSPATH%   The installation path of VS.
-:: @param[out] %USEVCVER% Use "-vcvars_ver=%VCVER%"?
 :: @return If found, return 0; otherwise, return 1.
 :GetVcVarsPathVswhereLatest
 IF %VSVER% GEQ 15 (
@@ -282,7 +341,9 @@ IF %VSVER% GEQ 15 (
     FOR /F "delims=" %%i IN ('"%VSWHERE%" -latest -property installationPath') DO (
       IF EXIST "%%~i\%VCREL%\vcvarsall.bat" (
         SET "VSPATH=%%~i\"
-        SET "USEVCVER=1"
+        FOR /F "delims=" %%j IN ('"%VSWHERE%" -latest -property catalog_productLineVersion') DO (
+            SET "VS_VER_YEAR=%%j"
+        )
         EXIT /B 0
       )
     )
