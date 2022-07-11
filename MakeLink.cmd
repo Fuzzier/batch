@@ -1,7 +1,18 @@
 @ECHO OFF
 
 REM ===========================================================
-REM 20200117
+REM @file
+REM
+REM @brief Make symbolic link.
+REM
+REM @version 1.0
+REM @author  Wei Tang <gauchyler@uestc.edu.cn>
+REM @date    2020-06-03
+REM
+REM @copyright Copyright (c) 2020.
+REM   National Key Laboratory of Science and Technology on Communications,
+REM   University of Electronic Science and Technology of China.
+REM   All rights reserved.
 REM ===========================================================
 
 :: @brief Invoke a subroutine in this script.

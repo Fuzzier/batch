@@ -1,24 +1,36 @@
-:: :::::::::::::::::::::::::::
-:: @brief     Automatically check & obtain admin rights
-:: @see <a href="http://stackoverflow.com/users/1016343/matt">Matt</a>
-:: @see <a href="http://stackoverflow.com/questions/7044985/how-can-i-auto-elevate-my-batch-file-so-that-it-requests-from-uac-admin-rights">link</a>
-:: :::::::::::::::::::::::::::
-
 @ECHO OFF
 
-:: This script use `NET FILE` to check administrator rights.
-:: If the administrator rights is not obtained, then
-:: * The command line to execute is stored in `_ELEV_CMD_`.
-:: * Create a temporary VBS script, the path is stored in `_ELEV_VBS_`.
-::   This script uses Windows `Shell` to invoke this script with a single
-::   argument `_ELEV_`, with administrator rights.
-:: * When administrator rights are obtained, the current environment variables
-::   are lost, in order to recall `_ELEV_CMD_`, the environment variables are
-::   stored in a temporary batch file `_ELEV_ENV_`.
-::   When this script is invoked with administrator rights, and the command line
-::   argument is `_ELEV_`, it invokes `_ELEV_CMD_` to recall the environment
-::   variables.
-::   Then `_ELEV_CMD_` is invoked appropriately.
+REM ===========================================================
+REM @file
+REM
+REM @brief Automatically check & obtain admin rights.
+REM
+REM @version 1.0
+REM @author  Wei Tang <gauchyler@uestc.edu.cn>
+REM @date    2020-07-19
+REM
+REM @copyright Copyright (c) 2020.
+REM   National Key Laboratory of Science and Technology on Communications,
+REM   University of Electronic Science and Technology of China.
+REM   All rights reserved.
+REM
+REM @see <a href="http://stackoverflow.com/users/1016343/matt">Matt</a>
+REM @see <a href="http://stackoverflow.com/questions/7044985/how-can-i-auto-elevate-my-batch-file-so-that-it-requests-from-uac-admin-rights">link</a>
+REM ===========================================================
+
+REM This script use `NET FILE` to check administrator rights.
+REM If the administrator rights is not obtained, then
+REM * The command line to execute is stored in `_ELEV_CMD_`.
+REM * Create a temporary VBS script, the path is stored in `_ELEV_VBS_`.
+REM   This script uses Windows `Shell` to invoke this script with a single
+REM   argument `_ELEV_`, with administrator rights.
+REM * When administrator rights are obtained, the current environment variables
+REM   are lost, in order to recall `_ELEV_CMD_`, the environment variables are
+REM   stored in a temporary batch file `_ELEV_ENV_`.
+REM   When this script is invoked with administrator rights, and the command line
+REM   argument is `_ELEV_`, it invokes `_ELEV_CMD_` to recall the environment
+REM   variables.
+REM   Then `_ELEV_CMD_` is invoked appropriately.
 
 CALL :TestPriviledges
 IF "%~1"=="_TEST_" (

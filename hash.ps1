@@ -1,4 +1,16 @@
-# requires -version 5.0
+##
+# @file
+# 
+# @brief Calculate hash.
+# 
+# @version 1.0
+# @author  Wei Tang <gauchyler@uestc.edu.cn>
+# @date    2021-03-11
+# 
+# @copyright Copyright (c) 2021.
+#   National Key Laboratory of Science and Technology on Communications,
+#   University of Electronic Science and Technology of China.
+#   All rights reserved.
 
 param(
     [string] $alg = "sha1",       # The hash algorithm.

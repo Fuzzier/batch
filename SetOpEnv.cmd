@@ -1,7 +1,21 @@
 @ECHO OFF
 
 REM ===========================================================
-REM 20191226
+REM @file
+REM
+REM @brief Automatically check & obtain admin rights.
+REM
+REM @version 1.0
+REM @author  Wei Tang <gauchyler@uestc.edu.cn>
+REM @date    2020-06-03
+REM
+REM @copyright Copyright (c) 2020.
+REM   National Key Laboratory of Science and Technology on Communications,
+REM   University of Electronic Science and Technology of China.
+REM   All rights reserved.
+REM
+REM @see <a href="http://stackoverflow.com/users/1016343/matt">Matt</a>
+REM @see <a href="http://stackoverflow.com/questions/7044985/how-can-i-auto-elevate-my-batch-file-so-that-it-requests-from-uac-admin-rights">link</a>
 REM ===========================================================
 
 SET SCRIPT_NAME=%0
