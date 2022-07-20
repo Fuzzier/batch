@@ -162,7 +162,7 @@ CALL :QueryVcVersion
 :: OS_CAPTION (e.g., Microsoft Windows 10 Professional)
 :: OS_VER     (e.g., 10.0.18363)
 :: OS_BUILD   (e.g., 18363)
-:: OS_ARCH    (e.g., 64 bit)
+:: OS_ARCH    (e.g., 64-bit)
 CALL :QueryOsInfo
 
 CALL :Clean
@@ -502,5 +502,6 @@ EXIT /B
 FOR /F "skip=1 tokens=1,2,3" %%i IN ('WMIC OS GET Caption        ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_CAPTION=%%i %%j %%k" )
 FOR /F "skip=1"              %%i IN ('WMIC OS GET Version        ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_VER=%%i" )
 FOR /F "skip=1"              %%i IN ('WMIC OS GET BuildNumber    ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_BUILD=%%i" )
+FOR /F "skip=1"              %%i IN ('WMIC OS GET OSArchitecture ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_ARCH=%%i" )
 EXIT /B
 :: ============ QueryOsInfo End ============
