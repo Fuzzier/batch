@@ -74,7 +74,7 @@ SET "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 SET "USEVCVER=0"
 SET "VSPATH="
 SET "VCVARSPATH="
-IF "%VSVER%"=="" (
+IF "%VCVER%"=="" (
   CALL :GuessVcVarsPath
 ) ELSE (
   CALL :GetVcVarsPath
@@ -85,54 +85,58 @@ IF "%VCVARSPATH%"=="" (
   EXIT /B
 )
 
+:: If the 1st parameter is a VC version, shift it to check platform specification.
+:: Otherwise, the 1st parameter might be platform specification.
+IF NOT "%VCVER%"=="" ( SHIFT /1 )
+
 :: Check Platform
 :: Defaults to x64
-  SET "PLATFORM=%~2"
-       IF "%~2"=="" (
+  SET "PLATFORM=%~1"
+       IF "%~1"=="" (
   SET PLATFORM=x64
   SET TARGET=x64
-) ELSE IF "%~2"=="x86" (
+) ELSE IF "%~1"=="x86" (
   SET TARGET=x86
   ECHO.
-) ELSE IF "%~2"=="x86_amd64" (
+) ELSE IF "%~1"=="x86_amd64" (
   SET PLATFORM=x86_x64
   SET TARGET=x64
   ECHO.
-) ELSE IF "%~2"=="x86_x64" (
+) ELSE IF "%~1"=="x86_x64" (
   SET TARGET=x64
   ECHO.
-) ELSE IF "%~2"=="x86_arm" (
+) ELSE IF "%~1"=="x86_arm" (
   SET TARGET=arm
   ECHO.
-) ELSE IF "%~2"=="x86_arm64" (
+) ELSE IF "%~1"=="x86_arm64" (
   SET TARGET=arm64
   ECHO.
-) ELSE IF "%~2"=="amd64" (
+) ELSE IF "%~1"=="amd64" (
   SET PLATFORM=x64
   SET TARGET=x64
   ECHO.
-) ELSE IF "%~2"=="amd64_x86" (
+) ELSE IF "%~1"=="amd64_x86" (
   SET PLATFORM=x64_x86
   SET TARGET=x86
   ECHO.
-) ELSE IF "%~2"=="amd64_arm" (
+) ELSE IF "%~1"=="amd64_arm" (
   SET PLATFORM=x64_arm
   SET TARGET=arm
   ECHO.
-) ELSE IF "%~2"=="amd64_arm64" (
+) ELSE IF "%~1"=="amd64_arm64" (
   SET PLATFORM=x64_arm64
   SET TARGET=arm64
   ECHO.
-) ELSE IF "%~2"=="x64" (
+) ELSE IF "%~1"=="x64" (
   SET TARGET=x64
   ECHO.
-) ELSE IF "%~2"=="x64_x86" (
+) ELSE IF "%~1"=="x64_x86" (
   SET TARGET=x86
   ECHO.
-) ELSE IF "%~2"=="x64_arm" (
+) ELSE IF "%~1"=="x64_arm" (
   SET TARGET=arm
   ECHO.
-) ELSE IF "%~2"=="x64_arm64" (
+) ELSE IF "%~1"=="x64_arm64" (
   SET TARGET=arm64
   ECHO.
 ) ELSE (
@@ -173,7 +177,6 @@ EXIT /B 0
 :Clean
 SET VSVER=
 SET VSVERNEXT=
-SET VS_VER_YEAR=
 SET VCREL=
 SET VCVER=
 SET USEVCVER=
