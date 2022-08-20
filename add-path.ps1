@@ -55,7 +55,7 @@ function DoWork([switch] $sys = $false)
 	{
 		If ([System.IO.Directory]::Exists($arg))
 		{
-			$coll = $coll + $arg
+			$coll = $coll + [System.IO.Path]::GetFullPath($arg)
 		}
 		Else
 		{
