@@ -173,41 +173,40 @@ EXIT /B
 :: ============ EnvvarCopy End ============
 
 
-:: ============ EnvvarAdd Begin ============
+:: ============ EnvvarPrepend Begin ============
 :: @brief Add a value to an environment variable.
-::        The value will be appended to the end of the environment variable.
-::        Values added are separated with semi-colons (;).
+::        The value will be prepended to the begin of the environment variable.
 :: @param %1 The name of the environment variable.
 :: @param %2 The value to add. If the value is empty, nothing will be done.
-:EnvvarAdd
+:EnvvarPrepend
 IF "%~2"=="" EXIT /B
 
 CALL :ValueEq "%%%~1%%" ""
 IF ERRORLEVEL 1 (
   CALL :EnvvarSet "%~1" "%~2"
 ) ELSE (
-  CALL :ValueEq "%%%~1:~-1%%" ";"
-  IF ERRORLEVEL 1 (
-    CALL :EnvvarSet "%~1" "%%%~1%%%~2"
-  ) ELSE (
-    CALL :EnvvarSet "%~1" "%%%~1%%;%~2"
-  )
+  CALL :EnvvarSet "%~1" "%~2%%%~1%%"
 )
 EXIT /B
-:: ============ EnvvarAdd End ============
+:: ============ EnvvarPrepend End ============
 
 
-:: ============ EnvvarAddPath Begin ============
-:: @brief Add a path to the environment variable.
-:: @param %1 The name of the evironment variable.
-:: @param %2 The path to add. If the path doesn't exists, nothing will be done.
-:EnvvarAddPath
-IF EXIST "%~2" (
-  CALL :EnvvarAdd %*
-  EXIT /B 1
+:: ============ EnvvarAppend Begin ============
+:: @brief Add a value to an environment variable.
+::        The value will be appended to the end of the environment variable.
+:: @param %1 The name of the environment variable.
+:: @param %2 The value to add. If the value is empty, nothing will be done.
+:EnvvarAppend
+IF "%~2"=="" EXIT /B
+
+CALL :ValueEq "%%%~1%%" ""
+IF ERRORLEVEL 1 (
+  CALL :EnvvarSet "%~1" "%~2"
+) ELSE (
+  CALL :EnvvarSet "%~1" "%%%~1%%%~2"
 )
-EXIT /B 0
-:: ============ EnvvarAddPath End ============
+EXIT /B
+:: ============ EnvvarAppend End ============
 
 
 :: ============ EnvvarTokenize Begin ============
@@ -228,39 +227,86 @@ EXIT /B
 :: ============ EnvvarTokenize End ============
 
 
-:: ============ EnvvarRemove Begin ============
+:: ============ EnvvarPathAppend Begin ============
+:: @brief Add a path to the environment variable.
+:: @param %1 The name of the evironment variable.
+:: @param %2 The path to add. If the path doesn't exists, nothing will be done.
+:EnvvarPathAppend
+SET __envvar_found__=
+IF EXIST "%~2" (
+  CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathFindCallback" "%~2"
+  CALL :EnvvarIs "__envvar_found__" ""
+  IF ERRORLEVEL 1 (
+    CALL :EnvvarIs "%~1:~-1" ";"
+    IF ERRORLEVEL 1 (
+      CALL :EnvvarSet "%~1" "%%%~1%%%~2"
+    ) ELSE (
+      CALL :EnvvarSet "%~1" "%%%~1%%;%~2"
+    )
+  )
+)
+SET __envvar_found__=
+EXIT /B
+:: ============ EnvvarPathAppend End ============
+
+
+:: ============ EnvvarPathPrepend Begin ============
+:: @brief Add a path to the environment variable.
+:: @param %1 The name of the evironment variable.
+:: @param %2 The path to add. If the path doesn't exists, nothing will be done.
+:EnvvarPathPrepend
+SET __envvar_found__=
+IF EXIST "%~2" (
+  CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathFindCallback" "%~2"
+  CALL :EnvvarIs "__envvar_found__" ""
+  IF ERRORLEVEL 1 (
+    CALL :EnvvarSet "%~1" "%~2;%%%~1%%"
+  )
+)
+SET __envvar_found__=
+EXIT /B
+:: ============ EnvvarPathPrepend End ============
+
+
+:: ============ EnvvarPathFindCallback Begin ============
+:: @brief Find the path in an environment variable.
+:: @param %1 The value of the token.
+:: @param %2 The path to find in token.
+:EnvvarPathFindCallback
+IF /I "%~1"=="%~2" (
+  SET __envvar_found__=1
+)
+EXIT /B
+:: ============ EnvvarPathFindCallback End ============
+
+
+:: ============ EnvvarPathRemove Begin ============
 :: @brief Remove a string to an environment variable.
 :: @param %1 The name of environment variable.
-:: @param %2 The delimiters.
-:: @param %3 The string to find in token.
-::           If the token matches the string, the token is removed from
-::           the environment variable.
-::           If the string is empty, nothing will be done.
-:: @param %4 Search options (see help for FINDSTR).
-:EnvvarRemove
-IF NOT "%~3"=="" (
-  SET TEMP_VAR=
-  CALL :ValueTokenize "%%%~1%%" %2 "EnvvarRemoveCallback" "TEMP_VAR" %3 %4
-  CALL :EnvvarSet "%~1" "%%TEMP_VAR%%"
+:: @param %2 The path to remove. If the path is not found, nothing will be done.
+:EnvvarPathRemove
+echo on
+SET __envvar_path__=
+IF NOT "%~2"=="" (
+  CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathRemoveCallback" "%~2"
+  CALL :EnvvarCopy "__envvar_path__" "%~1"
 )
+set __envvar_path__=
 EXIT /B
-:: ============ EnvvarRemove End ============
+:: ============ EnvvarPathRemove End ============
 
 
-:: ============ EnvvarRemoveCallback Begin ============
-:: @brief Remove a string to an environment variable.
+:: ============ EnvvarPathRemoveCallback Begin ============
+:: @brief Concatenate path, if the path is not to be removed.
 :: @param %1 The value of the token.
-:: @param %2 The name of the environment variable.
-:: @param %3 The string to find in token.
-::           If the token matches the string, the token is removed from
-::           the environment variable.
-::           If the string is empty, nothing will be done.
-:: @param %4 Search options (see help for FINDSTR).
-:EnvvarRemoveCallback
-CALL :ValueFind %1 %3 %4
-IF %ERRORLEVEL% EQU 0 (
-  CALL :EnvvarAdd %2 %1
+:: @param %2 The path to find in token.
+:EnvvarPathRemoveCallback
+IF /I "%~1" NEQ "%~2" (
+  IF "%__envvar_path__%"=="" (
+    SET __envvar_path__=%~1
+  ) ELSE (
+    SET __envvar_path__=%__envvar_path__%;%~1
+  )
 )
 EXIT /B
-:: ============ EnvvarRemoveCallback End ============
-
+:: ============ EnvvarPathRemoveCallback End ============
