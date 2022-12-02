@@ -59,7 +59,7 @@ EXIT /B
 :: ============ ValueEq Begin ============
 :: @brief Are two values equal?
 :: @param %1 The lhs value.
-:: @param %1 The rhs value.
+:: @param %2 The rhs value.
 :: @return Return 1 if they're equal.
 :ValueEq
 IF "%~1"=="%~2" ( EXIT /B 1 ) ELSE ( EXIT /B 0 )
@@ -227,6 +227,24 @@ EXIT /B
 :: ============ EnvvarTokenize End ============
 
 
+:: ============ EnvvarPathPrepend Begin ============
+:: @brief Add a path to the environment variable.
+:: @param %1 The name of the evironment variable.
+:: @param %2 The path to add. If the path doesn't exists, nothing will be done.
+:EnvvarPathPrepend
+SET __envvar_found__=
+IF EXIST "%~2" (
+  CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathFindCallback" "%~2"
+  CALL :EnvvarIs "__envvar_found__" ""
+  IF ERRORLEVEL 1 (
+    CALL :EnvvarSet "%~1" "%~2;%%%~1%%"
+  )
+)
+SET __envvar_found__=
+EXIT /B
+:: ============ EnvvarPathPrepend End ============
+
+
 :: ============ EnvvarPathAppend Begin ============
 :: @brief Add a path to the environment variable.
 :: @param %1 The name of the evironment variable.
@@ -248,24 +266,6 @@ IF EXIST "%~2" (
 SET __envvar_found__=
 EXIT /B
 :: ============ EnvvarPathAppend End ============
-
-
-:: ============ EnvvarPathPrepend Begin ============
-:: @brief Add a path to the environment variable.
-:: @param %1 The name of the evironment variable.
-:: @param %2 The path to add. If the path doesn't exists, nothing will be done.
-:EnvvarPathPrepend
-SET __envvar_found__=
-IF EXIST "%~2" (
-  CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathFindCallback" "%~2"
-  CALL :EnvvarIs "__envvar_found__" ""
-  IF ERRORLEVEL 1 (
-    CALL :EnvvarSet "%~1" "%~2;%%%~1%%"
-  )
-)
-SET __envvar_found__=
-EXIT /B
-:: ============ EnvvarPathPrepend End ============
 
 
 :: ============ EnvvarPathFindCallback Begin ============
