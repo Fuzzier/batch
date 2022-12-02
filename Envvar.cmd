@@ -310,3 +310,45 @@ IF /I "%~1" NEQ "%~2" (
 )
 EXIT /B
 :: ============ EnvvarPathRemoveCallback End ============
+
+
+:: ============ EnvvarPathTrim Begin ============
+:: @brief Remove trailing slash or backslash from the path.
+:: @param %1 The name of the environment variable.
+:EnvvarPathTrim
+CALL :ValueEq "%%%~1:~-1%%" "/"
+IF ERRORLEVEL 1 (
+  CALL :EnvvarSet "%~1" "%%%~1:~0,-1%%"
+  EXIT /B
+)
+CALL :ValueEq "%%%~1:~-1%%" "\"
+IF ERRORLEVEL 1 (
+  CALL :EnvvarSet "%~1" "%%%~1:~0,-1%%"
+  EXIT /B
+)
+EXIT /B
+:: ============ EnvvarPathNorm End ============
+
+
+:: ============ EnvvarPathWin Begin ============
+:: @brief Use Windows path seperator (a.k.a. backslash).
+:: @param %1 The name of the environment variable.
+:: @param %2 The path. Optional.
+:EnvvarPathWin
+IF NOT "%~2"=="" ( CALL :EnvvarSet "%~1" "%~2" )
+CALL :EnvvarSet "%~1" "%%%~1:/=\%%"
+CALL :EnvvarPathTrim "%~1"
+EXIT /B
+:: ============ EnvvarPathWin End ============
+
+
+:: ============ EnvvarPathNix Begin ============
+:: @brief Use Unix/Linux path seperator (a.k.a. slash).
+:: @param %1 The name of the environment variable.
+:: @param %2 The path. Optional.
+:EnvvarPathNix
+IF NOT "%~2"=="" ( CALL :EnvvarSet "%~1" "%~2" )
+CALL :EnvvarSet "%~1" "%%%~1:\=/%%"
+CALL :EnvvarPathTrim "%~1"
+EXIT /B
+:: ============ EnvvarPathNix End ============
