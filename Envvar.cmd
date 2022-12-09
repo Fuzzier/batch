@@ -335,7 +335,6 @@ EXIT /B
 :: @param %1 The name of the environment variable.
 :: @param %2 The path. Optional.
 :EnvvarPathWin
-@ECHO ON
 IF NOT "%~2"=="" (
   CALL :EnvvarSet "%~1" "%~f2"
 ) ELSE (
