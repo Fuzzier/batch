@@ -140,7 +140,7 @@ REM Delete temporary files.
 DEL /Q "%_ELEV_ENV_%"
 DEL /Q "%_ELEV_VBS_%"
 REM Invoke command.
-%_ELEV_CMD_%
+CALL %_ELEV_CMD_%
 CALL :Clean
 EXIT /B
 :: ========= Do work End =========
