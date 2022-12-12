@@ -2,7 +2,7 @@
 
 NET FILE 2>NUL 1>NUL
 IF ERRORLEVEL 1 (
-  CALL sudow %*
+  CALL sudow %0 %*
   EXIT /B
 )
 
