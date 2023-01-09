@@ -88,15 +88,40 @@ EXIT /B 0
 :: @param %4 The additional argument passed to the callback.
 :: @param %5 The additional argument passed to the callback.
 :: @param %6 The additional argument passed to the callback.
+:: Windows console **may not** support recursive invocation
+:: of local functions.
+:: `__envvar_tokens__` is used to hold the remaining tokens.
+:: * It is accessed by `:ValueTokenizeFlat`, which is able to
+::   observe the fresh value.
+:: `:ValueTokenizeFlat` returns `1` to indicate that there are
+:: more tokens to process.
 :ValueTokenize
+SET __envvar_tokens__=%~1
 IF NOT "%~1"=="" (
-  FOR /F "tokens=1,* delims=%~2" %%i IN ("%~1") DO (
-    CALL :%~3 "%%~i" %4 %5 %6
-    IF NOT "%%~j"=="" CALL :ValueTokenize "%%~j" %2 %3 %4 %5 %6
-  )
+  :ValueTokenizeLoop
+  CALL :ValueTokenizeFlat %2 %3 %4 %5 %6
+  IF ERRORLEVEL 1 ( GOTO :ValueTokenizeLoop )
 )
+SET __envvar_tokens__=
 EXIT /B
 :: ============ ValueTokenize End ============
+
+
+:: ============ ValueTokenizeFlat Begin ============
+:: @brief Tokenize a value.
+:: @param %1 The delimiters.
+:: @param %2 The name of callback subroutine.
+:: @param %3 The additional argument passed to the callback.
+:: @param %4 The additional argument passed to the callback.
+:: @param %5 The additional argument passed to the callback.
+:ValueTokenizeFlat
+FOR /F "tokens=1,* delims=%~1" %%i IN ("%__envvar_tokens__%") DO (
+  CALL :%~2 "%%~i" %3 %4 %5
+  SET __envvar_tokens__=%%j
+  IF NOT "%%~j"=="" ( EXIT /B 1 ) ELSE ( EXIT /B 0 )
+)
+EXIT /B 0
+:: ============ ValueTokenizeFlat End ============
 
 
 :: ============ EnvvarEcho Begin ============
@@ -285,7 +310,6 @@ EXIT /B
 :: @param %1 The name of environment variable.
 :: @param %2 The path to remove. If the path is not found, nothing will be done.
 :EnvvarPathRemove
-echo on
 SET __envvar_path__=
 IF NOT "%~2"=="" (
   CALL :ValueTokenize "%%%~1%%" ";" "EnvvarPathRemoveCallback" "%~2"
