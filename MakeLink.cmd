@@ -59,3 +59,20 @@ IF EXIST "%DST%" (
 )
 MKLINK "%DST%" "%SRC%"
 EXIT /B
+
+:MakeShortcut
+SET DST=%~dpn1.lnk
+SET SRC=%~2
+IF EXIST "%DST%" (
+    DEL "%DST%" /F /Q
+)
+SET SCRIPT=%TEMP%\MakeShortcut-%RANDOM%.vbs
+( ECHO Set oWS = WScript.CreateObject("WScript.Shell"^)
+  ECHO sLnk = "%DST%"
+  ECHO Set oLnk = oWS.CreateShortcut(sLnk^)
+  ECHO oLnk.TargetPath = "%SRC%"
+  ECHO oLnk.Save
+) > "%SCRIPT%"
+cscript.exe //NoLogo "%SCRIPT%"
+DEL /Q "%SCRIPT%"
+EXIT /B
