@@ -53,7 +53,7 @@ CALL :GetPc
 CALL SetVcEnv %OPNET_VCVER% %OPNET_PLATFORM%
 
 :: Setup environment for other tools
-CALL SetUserEnv.cmd %OPNET_PLATFORM%
+:: CALL SetUserEnv.cmd %OPNET_PLATFORM%
 
 :: Setup OPNET environment
 SET ProgramFiles64=%ProgramFiles%
@@ -77,15 +77,15 @@ SET OPNET_PC_DIR=%OPNET_SYS_DIR%\pc_%OPNET_PC%
 :: C:\Program Files\OPNET\14.5.A\models\std
 SET OPNET_MODEL_DIR=%OPNET_INSTALL_DIR%\models\std
 
-CALL Envvar :EnvvarAddPath "PATH"    "%OPNET_PC_DIR%\bin"
-CALL Envvar :EnvvarAddPath "PATH"    "%OPNET_USER_HOME%\op_models\lib"
+CALL Envvar :EnvvarPathAppend "PATH"    "%OPNET_PC_DIR%\bin"
+CALL Envvar :EnvvarPathAppend "PATH"    "%OPNET_USER_HOME%\op_models\lib"
 
-CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_SYS_DIR%\include"
-CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_MODEL_DIR%\include"
-CALL Envvar :EnvvarAddPath "INCLUDE" "%OPNET_USER_HOME%\op_models"
+CALL Envvar :EnvvarPathAppend "INCLUDE" "%OPNET_SYS_DIR%\include"
+CALL Envvar :EnvvarPathAppend "INCLUDE" "%OPNET_MODEL_DIR%\include"
+CALL Envvar :EnvvarPathAppend "INCLUDE" "%OPNET_USER_HOME%\op_models"
 
-CALL Envvar :EnvvarAddPath "LIB"     "%OPNET_PC_DIR%\lib"
-CALL Envvar :EnvvarAddPath "LIB"     "%OPNET_USER_HOME%\op_models\lib"
+CALL Envvar :EnvvarPathAppend "LIB"     "%OPNET_PC_DIR%\lib"
+CALL Envvar :EnvvarPathAppend "LIB"     "%OPNET_USER_HOME%\op_models\lib"
 
 IF "%OPNET_GUI%"=="1" (
   :: Set current driver
