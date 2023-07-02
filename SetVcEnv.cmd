@@ -160,6 +160,7 @@ POPD
 :: VC_VER_REVISION (e.g., 01)        same as the predefined macro _MSC_BUILD
 :: VC_VER_STD      (e.g., 1600)      same as the predefined macro _MSC_VER
 :: VC_VER_FULL     (e.g., 160040219) same as the predefined macro _MSC_FULL_VER
+:: VC_TARGET_ARCH  (e.g., x86)
 CALL :QueryVcVersion
 
 : Execute wmic.exe to obtain the operating system information.
@@ -495,6 +496,7 @@ FOR /F "tokens=1,2,3,4 delims=." %%w IN ("%~1") DO (
   SET VC_VER_REVISION=%%z
   SET VC_VER_FULL=%%w%%x%%y
   SET VC_VER_STD=%%w%%x
+  SET VC_TARGET_ARCH=%TARGET%
 )
 EXIT /B
 :: ============ ParseVcVersion End ============
