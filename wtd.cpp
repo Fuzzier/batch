@@ -453,7 +453,7 @@ int _tmain(int argc, TCHAR** argv)
                 _ftprintf(stderr, _T("Cannot get current directory 0x%08lx.\n"), retval);
                 goto exit;
             }
-            oss << _T("-d ") << pwd;
+            oss << _T("-d \"") << pwd << _T("\"");
         }
         std::tstring args = oss.str();
         ////////////////////
