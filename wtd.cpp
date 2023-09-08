@@ -424,8 +424,16 @@ int _tmain(int argc, TCHAR** argv)
         // Parse command line
         for (int i = 1; i < argc; ++i)
         {
-            if (std::_tcschr(argv[i], _T(' ')))
+            if (0 == _tcscmp(argv[i], _T("-d")) ||
+                0 == _tcscmp(argv[i], _T("--startingDirectory")))
             {
+                ++i;
+                continue;
+            }
+            // If there are spaces.
+            if (_tcschr(argv[i], _T(' ')))
+            {
+                // Add double quotes.
                 oss << '"' << argv[i] << _T("\" ");
             }
             else
@@ -433,28 +441,53 @@ int _tmain(int argc, TCHAR** argv)
                 oss << argv[i] << _T(" ");
             }
         }
-        if (!cli.has(_T("d")))
+        ////////////////////
+        // The current directory.
+        std::tstring pwd;
+        DWORD n = GetCurrentDirectory(0, NULL);
+        if (n == 0)
         {
-            std::tstring pwd;
-            ////////////////////
-            // The current directory.
-            DWORD n = GetCurrentDirectory(0, NULL);
-            if (n == 0)
-            {
-                retval = GetLastError();
-                _ftprintf(stderr, _T("Cannot get length of current directory 0x%08lx.\n"), retval);
-                goto exit;
-            }
-            pwd.assign(n, _T('\0'));
-            n = GetCurrentDirectory(n, &pwd[0]);
-            if (n == 0)
-            {
-                retval = GetLastError();
-                _ftprintf(stderr, _T("Cannot get current directory 0x%08lx.\n"), retval);
-                goto exit;
-            }
-            oss << _T("-d \"") << pwd << _T("\"");
+            retval = GetLastError();
+            _ftprintf(stderr, _T("Cannot get length of current directory 0x%08lx.\n"), retval);
+            goto exit;
         }
+        pwd.assign(n, _T('\0'));
+        n = GetCurrentDirectory(n, &pwd[0]);
+        if (n == 0)
+        {
+            retval = GetLastError();
+            _ftprintf(stderr, _T("Cannot get current directory 0x%08lx.\n"), retval);
+            goto exit;
+        }
+        do
+        {
+            std::tstring dir;
+            if (cli.has(_T("d")))
+            {
+                dir = cli(_T("d"));
+            }
+            else if (cli.has(_T("startingDirectory")))
+            {
+                dir = cli(_T("startingDirectory"));
+            }
+            else
+            {
+                oss << _T("-d \"") << pwd.data() << _T("\"");
+                break;
+            }
+            if (dir.size() >= 2)
+            {
+                // Is absolute path?
+                if (_istalpha(dir[0]) && dir[1] == _T(':'))
+                {
+                    oss << _T("-d \"") << dir.data() << _T("\"");
+                    break;
+                }
+            }
+            oss << _T("-d \"") << pwd.data()
+                << _T("\\") << dir.data() << _T("\"");
+        }
+        while (false);
         std::tstring args = oss.str();
         ////////////////////
         // Output diagnostic information.
@@ -468,8 +501,7 @@ int _tmain(int argc, TCHAR** argv)
         startupInfo.cb = sizeof(STARTUPINFO);
         PROCESS_INFORMATION processInfo;
         memset(&processInfo, 0, sizeof(processInfo));
-        BOOL n = CreateProcess(
-                          &app[0],       // Application
+        n = CreateProcess(&app[0],       // Application
                           &args[0],      // Command line arguments
                           NULL,          // Process attributes
                           NULL,          // Thread attributes
