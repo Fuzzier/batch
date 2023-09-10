@@ -444,6 +444,7 @@ int _tmain(int argc, TCHAR** argv)
         ////////////////////
         // The current directory.
         std::tstring pwd;
+        // `n` does not include the terminating zero.
         DWORD n = GetCurrentDirectory(0, NULL);
         if (n == 0)
         {
@@ -458,6 +459,11 @@ int _tmain(int argc, TCHAR** argv)
             retval = GetLastError();
             _ftprintf(stderr, _T("Cannot get current directory 0x%08lx.\n"), retval);
             goto exit;
+        }
+        // Trim the ending `\\`, if any, as `wt.exe` does recognize it.
+        if (pwd[n-1] == _T('\\'))
+        {
+            pwd[n-1] = _T('\0');
         }
         do
         {
