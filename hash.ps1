@@ -13,7 +13,7 @@
 #   All rights reserved.
 
 param(
-    [string] $alg = "sha1",       # The hash algorithm.
+    [string] $alg = "sha256",     # The hash algorithm.
 	[Alias('v')] $verify = $null, # The path of the hash file to verify.
 	[Parameter(Position=0, ValueFromRemainingArguments=$true)] $args
 )
