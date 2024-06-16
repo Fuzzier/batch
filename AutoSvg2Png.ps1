@@ -1,3 +1,12 @@
+# Define the mutex name
+$mutexName = "Global\AutoSvg2Png.Mutex"
+
+# Create or open the mutex
+$global:mutex = New-Object -TypeName System.Threading.Mutex($false, $mutexName)
+
+$global:lastPath = ''
+$global:lastTime = Get-Date
+
 # Inkscape
 function GetInkscape()
 {
@@ -29,11 +38,46 @@ function DoConvert()
         [string]$Path
     )
 
-    # Run the processing script and pass the new file as an argument
-    $outputPath = [System.IO.Path]::ChangeExtension($Path, 'png')
-    & $Cmd --export-type=png --export-dpi=300 --export-filename=$outputPath $Path
+    try
+    {
+        # Wait to acquire the mutex
+        $acquired = $global:mutex.WaitOne()
 
-    Set-Clipboard -Path $outputPath
+        if ($acquired)
+        {
+            $samePath = $global:lastPath -eq $Path
+            $currTime = Get-Date
+            if ($samePath)
+            {
+                $timeDiff = New-TimeSpan -Start $global:lastTime -End $currTime
+                $seconds = $timeDiff.TotalSeconds
+                $sameTime = $seconds -le 5
+                if ($sameTime)
+                {
+                    return
+                }
+            }
+
+            # Run the processing script and pass the new file as an argument
+            $outputPath = [System.IO.Path]::ChangeExtension($Path, 'png')
+            & $Cmd --export-type=png --export-dpi=300 --export-filename=$outputPath $Path
+
+            Set-Clipboard -Path $outputPath
+            $time = [string]::Format("{0:hh:mm:ss}", $(Get-Date))
+            Write-Host "[$time] File copied: $outputPath"
+
+            $global:lastPath = $Path
+            $global:lastTime = Get-Date
+        }
+    }
+    finally
+    {
+        if ($acquired)
+        {
+            # Release the mutex
+            $global:mutex.ReleaseMutex()
+        }
+    }
 }
 
 function DoWatch()
@@ -64,7 +108,6 @@ function DoWatch()
 
         # Log the file creation detection (optional)
         Write-Output "File created: $path"
-
         DoConvert -Cmd $cmd -Path $path
     }
 
@@ -77,7 +120,6 @@ function DoWatch()
 
         # Log the file change detection (optional)
         Write-Output "File changed: $path"
-
         DoConvert -Cmd $cmd -Path $path
     }
 
@@ -93,8 +135,16 @@ function DoWatch()
     while ($true) { Start-Sleep 1 }
 }
 
-$cmd = GetInkscape
-if ($cmd)
+try
 {
-    DoWatch -Cmd $cmd -Folder 'Z:\'
+    $cmd = GetInkscape
+    if ($cmd)
+    {
+        DoWatch -Cmd $cmd -Folder 'Z:\'
+    }
+}
+finally
+{
+    # Dispose of the mutex object
+    $global:mutex.Dispose()
 }
