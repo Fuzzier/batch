@@ -62,6 +62,13 @@ function DoConvert()
             $outputPath = [System.IO.Path]::ChangeExtension($Path, 'png')
             & $Cmd --export-type=png --export-dpi=300 --export-filename=$outputPath $Path
 
+            Sleep -Seconds 1
+            $trials = 1
+            while ((-not (Test-Path -Path $outputPath)) -and ($trials -le 3))
+            {
+                Sleep -Seconds 1
+                $trials += 1
+            }
             Set-Clipboard -Path $outputPath
             $time = [string]::Format("{0:hh:mm:ss}", $(Get-Date))
             Write-Host "[$time] File copied: $outputPath"
