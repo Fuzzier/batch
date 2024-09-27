@@ -62,7 +62,10 @@ SET "VCVER="
   ECHO.
 ) ELSE IF "%~1"=="17" (
   SET "VS_VER_YEAR=2022"
-  SET "VCVER=14.3"
+  REM For VS 17.0~17.9, VCVER is 14.3
+  REM For VS 17.10+,    VCVER is 14.4
+  REM 'vswhere' is used to query 'productPatchVersion' (3, 4, ...).
+  SET "VCVER=14"
   SET "VCREL=VC\Auxiliary\Build"
   ECHO.
 )
@@ -392,6 +395,7 @@ EXIT /B 1
 :: ============ SetVcVars Begin ============
 :: @brief Call "vcvarsall.bat".
 :: @param[in] %VCVARSPATH% The path to "vcvarsall.bat".
+:: @param[in] %VSVER%      The version of VS.
 :: @param[in] %PLATFORM%   The platform.
 :: @param[in] %USEVCVER%   Use "-vcvars_ver=%VCVER%"?
 :: @param[in] %VCVER%      The VC version.
@@ -399,6 +403,14 @@ EXIT /B 1
 PUSHD "%VCVARSPATH%"
 SET "VCVARSARGS=%PLATFORM%
 IF %USEVCVER% EQU 1 (
+  REM For Visual Studio 2022+, query 'productPatchVersion'.
+  REM If 'productPatchVersion' is 3, then 'VCVER' is 14.3.
+  REM If 'productPatchVersion' is 4, then 'VCVER' is 14.4.
+  IF VSVER GEQ 17 (
+    FOR /F "delims=" %%i IN ('"%VSWHERE%" -version ^[%VSVER%^,%VSVERNEXT%^) -property productPatchVersion') DO (
+      SET "VCVER=%VCVER%.%%~i"
+    )
+  )
   SET "VCVARSARGS=%VCVARSARGS% -vcvars_ver=%VCVER%"
 )
 ECHO.%VCVARSPATH%\
