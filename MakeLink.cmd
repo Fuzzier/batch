@@ -1,4 +1,4 @@
-@ECHO OFF
+@ECHO ON
 
 REM ===========================================================
 REM @file
@@ -57,7 +57,12 @@ SET SRC=%~2
 IF EXIST "%DST%" (
     DEL "%DST%" /F /Q
 )
-MKLINK "%DST%" "%SRC%"
+CALL :IsDirectory "%SRC%"
+IF ERRORLEVEL 1 (
+    MKLINK /D "%DST%" "%SRC%"
+) ELSE (
+    MKLINK "%DST%" "%SRC%"
+)
 EXIT /B
 
 :MakeShortcut
@@ -76,3 +81,12 @@ SET SCRIPT=%TEMP%\MakeShortcut-%RANDOM%.vbs
 cscript.exe //NoLogo "%SCRIPT%"
 DEL /Q "%SCRIPT%"
 EXIT /B
+
+:IsDirectory
+FOR /F %%i IN ("%~1") DO (
+  SET ATTR=%%~ai
+  IF "%ATTR:~0,1%" EQU "d" (
+    EXIT /B 1
+  )
+)
+EXIT /B 0
