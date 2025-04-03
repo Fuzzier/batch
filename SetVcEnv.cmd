@@ -433,32 +433,6 @@ EXIT /B
 :: ============ SetVcVars End ============
 
 
-:: ============ SetupPIL Begin ============
-:SetupPIL
-@ECHO Setup Environment for library: "%~1"
-
-IF NOT EXIST "%~1" EXIT /B -1
-CALL Envvar :EnvvarAddPath "PATH"    "%~1\bin"
-CALL Envvar :EnvvarAddPath "INCLUDE" "%~1\include"
-CALL Envvar :EnvvarAddPath "LIB"     "%~1\lib"
-
-EXIT /B
-:: ============ SetupPIL End ============
-
-
-:: ============ SetupBoost Begin ============
-:SetupBoost
-@ECHO Setup Environment for Boost Library: "%~1"
-
-IF NOT EXIST "%~1" EXIT /B -1
-CALL Envvar :EnvvarAddPath "PATH"    "%~1\stage\lib"
-CALL Envvar :EnvvarAddPath "INCLUDE" "%~1"
-CALL Envvar :EnvvarAddPath "LIB"     "%~1\stage\lib"
-
-EXIT /B
-:: ============ SetupBoost End ============
-
-
 :: ============ QueryVcVersion Begin ============
 :: Capture and process the command line output of cl.exe.
 :: e.g., "Microsoft (R) C/C++ Optimizing Compiler Version ww.xx.yy.zz for x64".
