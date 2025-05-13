@@ -42,6 +42,7 @@ function Merge
         [string] $Target
     )
     $count = -1
+    $content = ''
     foreach ($line in Get-Content -Path $Path)
     {
         if ($count -ge 0)
@@ -52,32 +53,35 @@ function Merge
             }
             if ($count -eq 0)
             {
-                $matches = [regex]::Matches($line, '<Type Name="nsfx::([0-9a-zA-Z]+)')
-                $type = $matches[0].Groups[1]
-                $title = '<!-- {0} -->' -f $type
-                Add-Content -Path $Target -Value $title
-                $count = $count + 1
+                if ($line -match '<Type Name="nsfx::([0-9a-zA-Z]+)')
+                {
+                    $type = $Matches[1]
+                    $title = "<!-- {0} -->`n" -f $type
+                    $content = $title + $content
+                    $count = $count + 1
+                }
             }
-            Add-Content -Path $Target -Value $line
+            $content += "{0}`n" -f $line
         }
         elseif ($line -match '<AutoVisualizer')
         {
             $count = 0
         }
     }
+    Add-Content -Path $Target -Value $content -NoNewline
 }
 
 # 从当前目录出发, 找到'/nsfx/natvis'目录
-$dir = $PWD
-$dir = Join-Path -Path $dir -ChildPath 'nsfx/natvis'
-$target = Join-Path -Path $dir -ChildPath 'nsfx.natvis'
+$target = Join-Path -Path $PWD -ChildPath 'nsfx.natvis'
+$natvis = Join-Path -Path $PWD -ChildPath 'nsfx/natvis'
 
 $file = New-Item -Path $target -ItemType File -Force
 WriteProlog -Target $target
 
-$files = Get-ChildItem -Path $dir -Exclude 'nsfx.natvis'
+$files = Get-ChildItem -Path $natvis
 foreach ($file in $files)
 {
+    $file = Join-Path -Path $natvis -ChildPath $file
     Merge -Path $file -Target $target
 }
 
