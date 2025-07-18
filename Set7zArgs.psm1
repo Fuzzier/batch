@@ -1,7 +1,3 @@
-$date = Get-Date
-$__7z_date__='{0:D4}{1:D2}{2:D2}{3:D2}{4:D2}{5:D2}' -f $date.Year, $date.Month, $date.Day, $date.Hour, $date.Minute, $date.Second
-$date = $null
-
 # To compress general files.
 # -sccUTF-8: console output UTF-8
 # -bt: show time statistics
@@ -24,3 +20,5 @@ $__7z_lzma_args__='-sccUTF-8 -bt -slp -mx1 -md=28 -mfb=273 -ms=4g -mmt -mmtf -my
 # -snh: keep hard links
 # -snl: keep symbolic links
 $__7z_tar_args__='-an -snh -snl'
+
+Export-ModuleMember -Variable __7z_lzma_args__, __7z_tar_args__

@@ -1,7 +1,3 @@
-$date = Get-Date
-$__rar_date__='{0:D4}{1:D2}{2:D2}{3:D2}{4:D2}{5:D2}' -f $date.Year, $date.Month, $date.Day, $date.Hour, $date.Minute, $date.Second
-$date = $null
-
 # To compress general files.
 # -htb: use BLAKE2 hash function
 # -m3: compression level normal
@@ -16,3 +12,5 @@ $date = $null
 # -rr3p: add data recovery record (3 percent)
 # -s: create a solid archive
 $__rar_args__='-htb -m3 -md256m -mlp -idn -oc -oh -ol -oi -r -rr3p -s'
+
+Export-ModuleMember -Variable __rar_args__
