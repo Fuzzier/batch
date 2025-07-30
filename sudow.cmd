@@ -156,3 +156,14 @@ SET "_ELEV_CMD_="
 EXIT /B
 :: ========= Clean End =========
 
+
+REM 在批处理文件中直接请求获取管理员权限.
+REM 若非管理员权限运行, 则请求获取管理员权限.
+REM NET FILE 1>NUL 2>NUL
+REM IF ERRORLEVEL 1 (
+REM     ECHO Set UAC=CreateObject^("Shell.Application"^) > "%TEMP%\_Elev_.vbs"
+REM     ECHO UAC.ShellExecute "%~nx0", "", "%~dp0", "runas", 1 >> "%TEMP%\_Elev_.vbs"
+REM     "%TEMP%\_Elev_.vbs"
+REM     EXIT /B
+REM )
+REM CD /D "%~dp0"
