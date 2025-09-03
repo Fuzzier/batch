@@ -419,7 +419,7 @@ int _tmain(int argc, TCHAR** argv)
         {
             goto exit;
         }
-        oss << _T('\"') << app << _T("\" ");
+        oss << _T("new-tab ");
         ////////////////////
         // Parse command line
         for (int i = 1; i < argc; ++i)
