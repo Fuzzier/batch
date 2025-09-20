@@ -87,3 +87,7 @@ foreach ($file in $files)
 
 WriteEpilog -Target $target
 Write-Output (Get-Content -Path $target)
+
+# 使用Unix换行, 可直接在Linux中使用
+(Get-Content $target -Raw) -replace "`r`n", "`n" |
+    Set-Content $target -Encoding utf8
