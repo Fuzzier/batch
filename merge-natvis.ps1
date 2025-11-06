@@ -53,7 +53,7 @@ function Merge
             }
             if ($count -eq 0)
             {
-                if ($line -match '<Type Name="nsfx::([0-9a-zA-Z]+)')
+                if ($line -match '<Type Name="nsfx::([0-9a-zA-Z:]+)')
                 {
                     $type = $Matches[1]
                     $title = "<!-- {0} -->`n" -f $type
@@ -87,7 +87,45 @@ foreach ($file in $files)
 
 WriteEpilog -Target $target
 Write-Output (Get-Content -Path $target)
+Write-Output ""
 
 # 使用Unix换行, 可直接在Linux中使用
 (Get-Content $target -Raw) -replace "`r`n", "`n" |
     Set-Content $target -Encoding utf8
+
+function CopyNatvisTo()
+{
+    param
+    (
+        [string] $Path
+    )
+    Write-Output $Path
+    Copy-Item -Path "nsfx.natvis"        -Destination $Path -Force
+    Copy-Item -Path "nsfx.natstepfilter" -Destination $Path -Force
+    Copy-Item -Path "std.natstepfilter"  -Destination $Path -Force
+}
+
+function InstallNatvis()
+{
+    # Visual Studio Visualizers
+    # e.g., "Visual Studio 2022"
+    $targets = Get-ChildItem "$env:USERPROFILE\Documents" -Directory -Filter "Visual Studio *"
+    foreach ($dir in $targets)
+    {
+        $path = Join-Path -Path $dir.FullName -ChildPath "Visualizers"
+        CopyNatvisTo -Path $path
+    }
+    # VSCode Visualizers
+    # e.g., "ms-vscode.cpptools-1.23.6-win32-x64"
+    $targets = Get-ChildItem "$env:USERPROFILE\.vscode\extensions" -Directory -Filter "ms-vscode.cpptools-*-win32-*"
+    foreach ($dir in $targets)
+    {
+        $path = Join-Path -Path $dir.FullName -ChildPath "debugAdapters\vsdbg\bin\Visualizers"
+        CopyNatvisTo -Path $path
+    }
+}
+
+InstallNatvis
+
+function Pause($M="Press any key to continue . . . "){if($psISE){$S=New-Object -ComObject "WScript.Shell";$B=$S.Popup("Click OK to continue.",0,"Script Paused",0);return};Write-Host -NoNewline $M;$I=16,17,18,20,91,92,93,144,145,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183;while($K.VirtualKeyCode -Eq $Null -Or $I -Contains $K.VirtualKeyCode){$K=$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")};Write-Host}
+Pause
