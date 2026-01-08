@@ -71,13 +71,23 @@ function Merge
     Add-Content -Path $Target -Value $content -NoNewline
 }
 
-# 从当前目录出发, 找到'/nsfx/natvis'目录
+# 在当前目录创建'nsfx.natvis'
 $target = Join-Path -Path $PWD -ChildPath 'nsfx.natvis'
-$natvis = Join-Path -Path $PWD -ChildPath 'nsfx/natvis'
 
 $file = New-Item -Path $target -ItemType File -Force
 WriteProlog -Target $target
 
+# 从当前目录出发, 找到'/nsfx/natvis'目录
+$natvis = Join-Path -Path $PWD -ChildPath 'nsfx/natvis'
+$files = Get-ChildItem -Path $natvis
+foreach ($file in $files)
+{
+    $file = Join-Path -Path $natvis -ChildPath $file
+    Merge -Path $file -Target $target
+}
+
+# 从当前目录出发, 找到'/models/natvis'目录
+$natvis = Join-Path -Path $PWD -ChildPath 'models/natvis'
 $files = Get-ChildItem -Path $natvis
 foreach ($file in $files)
 {
