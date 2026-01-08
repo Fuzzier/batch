@@ -46,7 +46,7 @@ function Process
             # Rename the first $name to $newName
             Rename-Item -Path "HKLM:$subkey" -NewName "$newName"
             # Will remove redundant names
-            $newNameAlreadyExist[$newName] = true
+            $newNameAlreadyExist[$newName] = $true
        }
     }
 }
