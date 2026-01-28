@@ -7,7 +7,7 @@
 :: -bt: show time statistics
 :: -slp: use large memory pages
 :: -mx1: compression level fastest (key factor for compression speed)
-:: -md=27: dictionary size 2^27=128MB (key factor for compression ratio)
+:: -md=28: dictionary size 2^28=256MB (key factor for compression ratio)
 :: -mmf=hc4: match finder hc4 (hash chain 4B, key factor for compression speed)
 :: -mfb=273: word size 273B
 :: -ms=4g: solid block size 4GB
@@ -16,7 +16,7 @@
 :: -myx: analyze all files
 :: -mqs: sort by type (better compression ratio)
 :: -mhe: encrypt archive header
-SET __7z_lzma_args__=-sccUTF-8 -bt -slp -mx1 -md=27 -mfb=273 -ms=4g -mmt -mmtf -myx -mqs -mhe
+SET __7z_lzma_args__=-sccUTF-8 -bt -slp -mx1 -md=28 -mfb=273 -ms=4g -mmt -mmtf -myx -mqs -mhe
 
 :: To compress x86/x64 executables.
 :: -mf=BCJ2::d27
@@ -25,20 +25,36 @@ SET __7z_lzma_args__=-sccUTF-8 -bt -slp -mx1 -md=27 -mfb=273 -ms=4g -mmt -mmtf -
 SET __7z_bcj_args__=-mf=BCJ2:d=27
 
 :: To compress with hard and symbolic links.
-:: -an: no archive_name field
 :: -snh: keep hard links
 :: -snl: keep symbolic links
-SET __7z_tar_args__=-an -snh -snl
+SET __7z_tar_args__=-sccUTF-8 -snh -snl
+
+:: To compress general files.
+:: -sccUTF-8: console output UTF-8
+:: -bt: show time statistics
+:: -slp: use large memory pages
+:: -mx1: compression level fastest (key factor for compression speed)
+:: -md=28: dictionary size 2^28=256MB (key factor for compression ratio)
+:: -mmf=hc4: match finder hc4 (hash chain 4B, key factor for compression speed)
+:: -mfb=273: word size 273B
+:: -ms=4g: solid block size 4GB
+:: -mmt: multithreading (use all CPU cores)
+:: -mmtf: multithreading for filters
+:: -myx: analyze all files
+SET __7z_xz_args__=-sccUTF-8 -bt -slp -mx1 -md=28 -mfb=273 -ms=4g -mmt -myx
 
 :: tar7z <command> <arguments>
 :: command:
 ::   a:  add
+::   aJ: add tar.xz
 ::   at: add tar.7z
 ::   x:  extract
 ::   xt: extract tar.7z
 
 IF "%~1"=="a" (
     CALL :Add7z%*
+) ELSE IF "%~1"=="aJ" (
+    CALL :AddTarXz%*
 ) ELSE IF "%~1"=="at" (
     CALL :AddTar7z%*
 ) ELSE IF "%~1"=="x" (
@@ -58,13 +74,25 @@ EXIT /B
 EXIT /B
 
 
-========= AddTar7z =========
-:AddTar7zat
+========= AddTarXz =========
+:AddTarXzaJ
 :: a: add to archive
+:: dummy: the output file name, not actually created, due to write to stdout
 :: -ttar: create tarball
 :: -so: write to stdout
 :: -si: read from stdin
-7z.exe a -ttar -so %__7z_tar_args__% "%~1" | 7z.exe a -si %__7z_lzma_args__% "%~1.tar.7z"
+7z.exe a dummy -ttar -so %__7z_tar_args__% "%~1" | 7z.exe a -txz -si %__7z_xz_args__% "%~1.tar.xz"
+EXIT /B
+
+
+========= AddTar7z =========
+:AddTar7zat
+:: a: add to archive
+:: dummy: the output file name, not actually created, due to write to stdout
+:: -ttar: create tarball
+:: -so: write to stdout
+:: -si: read from stdin
+7z.exe a dummy -ttar -so %__7z_tar_args__% "%~1" | 7z.exe a -si %__7z_lzma_args__% "%~1.tar.7z"
 EXIT /B
 
 
