@@ -57,8 +57,7 @@ $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Pri
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 {
     Process
-    # Write-Host 'Press any key ...'; $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-    Pause
+	if($psISE){(New-Object -ComObject 'WScript.Shell').Popup('Click OK to continue...',0,'Script done',0)}else{Write-Host 'Done. Press any key to continue...' -NoNewline;$key=$host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown").VirtualKeyCode}
 }
 else
 {

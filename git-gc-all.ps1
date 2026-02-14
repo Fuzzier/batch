@@ -146,6 +146,5 @@ IterateSubFoldersRecursively -Paths $Path -Callback $Callback
 
 if (-not $NoPause)
 {
-    Write-Host 'Done. Press any key to continue...' -NoNewline
-    $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown").VirtualKeyCode
+	if($psISE){(New-Object -ComObject 'WScript.Shell').Popup('Click OK to continue...',0,'Script done',0)}else{Write-Host 'Done. Press any key to continue...' -NoNewline;$key=$host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown").VirtualKeyCode}
 }
