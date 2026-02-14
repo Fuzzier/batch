@@ -65,7 +65,12 @@ SET "VCVER="
   REM For VS 17.0~17.9, VCVER is 14.3
   REM For VS 17.10+,    VCVER is 14.4
   REM 'vswhere' is used to query 'productPatchVersion' (3, 4, ...).
-  SET "VCVER=14"
+  SET "VCVER=14.4"
+  SET "VCREL=VC\Auxiliary\Build"
+  ECHO.
+) ELSE IF "%~1"=="18" (
+  SET "VS_VER_YEAR=2026"
+  SET "VCVER=14.5"
   SET "VCREL=VC\Auxiliary\Build"
   ECHO.
 )
@@ -204,6 +209,7 @@ ECHO     14        Visual C++ 2015
 ECHO     15        Visual C++ 2017
 ECHO     16        Visual C++ 2019
 ECHO     17        Visual C++ 2022
+ECHO     18        Visual C++ 2026
 ECHO   platform:
 ECHO     x86
 ECHO     x86_amd64
@@ -406,7 +412,7 @@ IF %USEVCVER% EQU 1 (
   REM For Visual Studio 2022+, query 'productPatchVersion'.
   REM If 'productPatchVersion' is 3, then 'VCVER' is 14.3.
   REM If 'productPatchVersion' is 4, then 'VCVER' is 14.4.
-  IF VSVER GEQ 17 (
+  IF %VSVER% EQU 17 (
     FOR /F "delims=" %%i IN ('"%VSWHERE%" -version ^[%VSVER%^,%VSVERNEXT%^) -property productPatchVersion') DO (
       SET "VCVER=%VCVER%.%%~i"
     )
