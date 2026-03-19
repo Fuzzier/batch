@@ -110,6 +110,9 @@ function CopyNatvisTo()
         [string] $Path
     )
     Write-Output $Path
+    if (-not (Test-Path $Path)) {
+        $Path = New-Item -Path $Path -ItemType Directory -Force
+    }
     Copy-Item -Path "nsfx.natvis"        -Destination $Path -Force
     Copy-Item -Path "nsfx.natstepfilter" -Destination $Path -Force
     Copy-Item -Path "std.natstepfilter"  -Destination $Path -Force
