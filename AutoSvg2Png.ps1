@@ -62,17 +62,14 @@ function DoConvert()
             $outputPath = [System.IO.Path]::ChangeExtension($Path, 'png')
             & $Cmd --export-type=png --export-dpi=300 --export-filename=$outputPath $Path
 
-            Sleep -Seconds 1
             $trials = 1
-            while ((-not (Test-Path -Path $outputPath)) -and ($trials -le 3))
+            while (-not (Test-Path -Path $outputPath))
             {
-                Sleep -Seconds 1
-                $trials += 1
+                Sleep -Milliseconds 100
             }
             Set-Clipboard -Path $outputPath
             $time = [string]::Format("{0:hh:mm:ss}", $(Get-Date))
             Write-Host "[$time] File copied: $outputPath"
-
             $global:lastPath = $Path
             $global:lastTime = Get-Date
         }
@@ -130,16 +127,26 @@ function DoWatch()
         DoConvert -Cmd $cmd -Path $path
     }
 
-    # Register the event handler for the 'Created' event
-    Register-ObjectEvent $watcher Created -Action $onCreatedAction
+    try
+    {
+        # Register the event handler for the 'Created' event
+        Register-ObjectEvent $watcher Created -Action $onCreatedAction
 
-    # Register the event handler for the 'Changed' event
-    Register-ObjectEvent $watcher Changed -Action $onChangedAction
+        # Register the event handler for the 'Changed' event
+        Register-ObjectEvent $watcher Changed -Action $onChangedAction
 
-    # Keep the script running to monitor the folder
-    Write-Output "Monitoring folder: $folderToWatch"
+        # Keep the script running to monitor the folder
+        Write-Output "Monitoring folder: $folderToWatch"
 
-    while ($true) { Start-Sleep 1 }
+        while ($true)
+        {
+            Start-Sleep 1
+        }
+    }
+    finally
+    {
+        Get-EventSubscriber | Unregister-Event
+    }
 }
 
 try
