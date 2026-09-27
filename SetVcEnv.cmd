@@ -171,11 +171,9 @@ POPD
 :: VC_TARGET_ARCH  (e.g., x86)
 CALL :QueryVcVersion
 
-: Execute wmic.exe to obtain the operating system information.
+:: Operating system information.
 :: OS_CAPTION (e.g., Microsoft Windows 10 Professional)
-:: OS_VER     (e.g., 10.0.18363)
 :: OS_BUILD   (e.g., 18363)
-:: OS_ARCH    (e.g., 64-bit)
 CALL :QueryOsInfo
 
 CALL :Clean
@@ -495,10 +493,25 @@ EXIT /B
 
 
 :: ============ QueryOsInfo Begin ============
+:: OS_CAPTION (e.g., Microsoft Windows 10 Professional)
+:: OS_BUILD   (e.g., 18363)
 :QueryOsInfo
-FOR /F "skip=1 tokens=1,2,3" %%i IN ('WMIC OS GET Caption        ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_CAPTION=%%i %%j %%k" )
-FOR /F "skip=1"              %%i IN ('WMIC OS GET Version        ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_VER=%%i" )
-FOR /F "skip=1"              %%i IN ('WMIC OS GET BuildNumber    ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_BUILD=%%i" )
-FOR /F "skip=1"              %%i IN ('WMIC OS GET OSArchitecture ^| FINDSTR /R /C:[0-9A-Za-z.]') DO ( SET "OS_ARCH=%%i" )
+REM 10
+FOR /F "tokens=3" %%i IN ('REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentMajorVersionNumber') DO (SET OS_MajorVersion=%%i)
+REM 26200
+FOR /F "tokens=3"  %%i IN ('REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuild') DO (SET OS_BUILD=%%i)
+REM Update Build Revision: 9457
+FOR /F "tokens=3" %%i IN ('REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v UBR') DO (SET /A OS_Revision=%%i)
+REM Professional
+FOR /F "tokens=3" %%i IN ('REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID') DO (SET OS_EditionID=%%i)
+SET OS_CAPTION=Windows %OS_EditionID%
+IF %OS_BUILD% GEQ 22000 (
+  SET OS_CAPTION=Microsoft Windows 11 %OS_EditionID%
+) ELSE (
+  SET OS_VER=Microsoft Windows %OS_MajorVersion% %OS_EditionID%
+)
+SET OS_EditionID=
+SET OS_MajorVersion=
+SET OS_Revision=
 EXIT /B
 :: ============ QueryOsInfo End ============
